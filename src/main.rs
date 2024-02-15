@@ -1,3 +1,6 @@
+mod compiler;
+mod virtual_machine;
+
 struct InputBuffer {
     buffer: String,
 }
@@ -82,6 +85,7 @@ fn main() {
     let mut input_buffer = InputBuffer::new();
 
     loop {
+        input_buffer.clear();
         input_buffer.print_prompt(false);
         input_buffer.read();
 
@@ -89,11 +93,13 @@ fn main() {
         if cur_buffer == "" {
             continue;
         }
-        if cur_buffer == ".exit" {
-            std::process::exit(0);
+
+        let (command_result, statement) = compiler::compile(&cur_buffer);
+        if matches!(command_result, compiler::CommandResult::CommandUnrecognized) {
+            println!("\n~~~\nUnrecognized command `{cur_buffer}` .\n~~~\n");
+            continue;
         }
 
-        println!("\n~~~\nUnrecognized command `{cur_buffer}` .\n~~~\n");
-        input_buffer.clear();
+        virtual_machine::execute(&statement);
     }
 }
