@@ -62,7 +62,7 @@ impl InputBuffer {
                 if let Some(first_char) = input.chars().next() {
                     if first_char != '.' {
                         // SQL queries/statements end with a ';' and can be multi-line
-                        // while SQLite commands aka meta-commands start with a '.' and can not be multi-line
+                        // while SQLite commands aka META-commands start with a '.' and can not be multi-line
                         // here I just get the multi-line input from user for queries
                         input = self.read_multiline(input);
                     }

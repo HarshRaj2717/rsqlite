@@ -18,6 +18,7 @@ pub enum StatementType {
 pub struct Statement {
     statement_result: StatementResult,
     statement_type: StatementType,
+    meta_args: Option<String>, // for META commands only
     table_name: Option<String>,
     columns_to_create: Option<Vec<String>>, // for create statement only
     row_to_insert: Option<Vec<String>>,     // for insert statement only
@@ -27,6 +28,7 @@ impl Statement {
     fn new(
         statement_result: StatementResult,
         statement_type: StatementType,
+        meta_args: Option<String>,
         table_name: Option<String>,
         columns_to_create: Option<Vec<String>>,
         row_to_insert: Option<Vec<String>>,
@@ -34,6 +36,7 @@ impl Statement {
         Self {
             statement_result,
             statement_type,
+            meta_args,
             table_name,
             columns_to_create,
             row_to_insert,
@@ -46,6 +49,10 @@ impl Statement {
 
     // pub fn statement_type(&self) -> &StatementType {
     //     &self.statement_type
+    // }
+
+    // pub fn meta_args(&self) -> Option<&Vec<String>> {
+    //     self.meta_args.as_ref()
     // }
 
     // pub fn table_name(&self) -> Option<&String> {
@@ -146,6 +153,7 @@ fn unrecognized_command() -> Statement {
         None,
         None,
         None,
+        None,
     )
 }
 
@@ -158,16 +166,19 @@ fn parse_error() -> Statement {
         None,
         None,
         None,
+        None,
     )
 }
 
 fn compile_meta(input: &String) -> Statement {
-    let (first_word, _end_index) = read_next_word(input, 0);
+    let (first_word, end_index) = read_next_word(input, 1);
+    let meta_args = input[end_index..].to_string();    
     match first_word.to_lowercase().as_str() {
         "exit" => std::process::exit(0),
         "help" => Statement::new(
             StatementResult::Success,
             StatementType::MetaHelp,
+            Some(meta_args),
             None,
             None,
             None,
@@ -175,6 +186,7 @@ fn compile_meta(input: &String) -> Statement {
         "print" => Statement::new(
             StatementResult::Success,
             StatementType::MetaPrint,
+            Some(meta_args),
             None,
             None,
             None,
@@ -194,6 +206,7 @@ fn compile_statement(input: &String) -> Statement {
                 true => Statement::new(
                     StatementResult::Success,
                     StatementType::Create,
+                    None,
                     Some(table_name),
                     Some(columns_to_create),
                     None,
@@ -208,6 +221,7 @@ fn compile_statement(input: &String) -> Statement {
                 _ => Statement::new(
                     StatementResult::Success,
                     StatementType::Drop,
+                    None,
                     Some(table_name),
                     None,
                     None,
@@ -215,12 +229,18 @@ fn compile_statement(input: &String) -> Statement {
             }
         }
         "insert" => {
+            let second_word;
+            (second_word, end_index) = read_next_word(input, end_index);
+            if second_word.to_lowercase().as_str() != "into" {
+                return parse_error();
+            }
             (table_name, end_index) = read_next_word(input, end_index);
             let (success, row_to_insert, _) = read_next_list(input, end_index);
             match success {
                 true => Statement::new(
                     StatementResult::Success,
                     StatementType::Insert,
+                    None,
                     Some(table_name),
                     None,
                     Some(row_to_insert),
@@ -235,6 +255,7 @@ fn compile_statement(input: &String) -> Statement {
                 _ => Statement::new(
                     StatementResult::Success,
                     StatementType::Select,
+                    None,
                     Some(table_name),
                     None,
                     None,
