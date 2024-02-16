@@ -27,7 +27,7 @@ fn get_first_word(input: &String) -> String {
         if c == ';' || c == '\n' {
             break;
         }
-        if c == ' ' || c == '\t' {
+        if c == ' ' || c == '\t' || c == '.' {
             if first_word.is_empty() {
                 continue;
             }
@@ -41,7 +41,11 @@ fn get_first_word(input: &String) -> String {
 fn compile_meta(input: &String) -> (CommandResult, Statement) {
     let first_word = get_first_word(input).to_lowercase();
     match first_word.as_str() {
-        ".exit" => std::process::exit(0),
+        "exit" => std::process::exit(0),
+        "help" => (
+            CommandResult::CommandSuccess,
+            Statement::new(StatementType::Meta),
+        ),
         _ => (
             CommandResult::CommandUnrecognized,
             Statement::new(StatementType::Undefined),

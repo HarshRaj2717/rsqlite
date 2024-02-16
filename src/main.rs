@@ -54,7 +54,7 @@ impl InputBuffer {
         multi_line_input
     }
 
-    fn read(&mut self) {
+    fn read(&mut self) -> String {
         let mut input = String::new();
         match std::io::stdin().read_line(&mut input) {
             Ok(_) => {
@@ -74,9 +74,6 @@ impl InputBuffer {
                 std::process::exit(1);
             }
         }
-    }
-
-    fn get(&self) -> String {
         self.buffer.clone()
     }
 }
@@ -87,9 +84,8 @@ fn main() {
     loop {
         input_buffer.clear();
         input_buffer.print_prompt(false);
-        input_buffer.read();
 
-        let cur_buffer = input_buffer.get();
+        let cur_buffer = input_buffer.read();
         if cur_buffer == "" {
             continue;
         }
