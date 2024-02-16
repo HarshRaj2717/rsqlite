@@ -1,6 +1,6 @@
 # rsqlite
 
-An SQLite clone written in rust.
+A simple SQLite clone written in rust.
 
 > SQLite working referenced from : [Let's Build a Simple Database](https://cstack.github.io/db_tutorial/) by [cstack](https://github.com/cstack) where he explanis & implements the same using C.
 
