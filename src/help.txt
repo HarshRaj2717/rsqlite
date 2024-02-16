@@ -2,5 +2,7 @@ META commands help:
 
 .exit
     Exit this program
+.help
+    Show this `META commands help` list
 .print STRING...
     Print literal STRING
