@@ -90,9 +90,19 @@ fn main() {
             continue;
         }
 
-        let (command_result, statement) = compiler::compile(&cur_buffer);
-        if matches!(command_result, compiler::CommandResult::CommandUnrecognized) {
+        let statement = compiler::compile(&cur_buffer);
+        if matches!(
+            statement.statement_result(),
+            compiler::StatementResult::Unrecognized
+        ) {
             println!("\n~~~\nUnrecognized command `{cur_buffer}` .\n~~~\n");
+            continue;
+        }
+        if matches!(
+            statement.statement_result(),
+            compiler::StatementResult::ParseError
+        ) {
+            println!("\n~~~\nParsing/Syntax Error.\n~~~\n");
             continue;
         }
 

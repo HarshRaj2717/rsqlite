@@ -1,3 +1,6 @@
 META commands help:
 
-.exit       Exit this program
+.exit
+    Exit this program
+.print STRING...
+    Print literal STRING
