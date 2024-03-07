@@ -18,8 +18,8 @@ pub enum StatementType {
 pub struct Statement {
     statement_result: StatementResult,
     statement_type: StatementType,
-    meta_args: Option<String>, // for META commands only
-    table_name: Option<String>,
+    meta_args: Option<String>,              // for META commands only
+    table_name: Option<String>,             // for non-META commands only
     columns_to_create: Option<Vec<String>>, // for create statement only
     row_to_insert: Option<Vec<String>>,     // for insert statement only
 }
@@ -47,25 +47,25 @@ impl Statement {
         &self.statement_result
     }
 
-    // pub fn statement_type(&self) -> &StatementType {
-    //     &self.statement_type
-    // }
+    pub fn statement_type(&self) -> &StatementType {
+        &self.statement_type
+    }
 
     // pub fn meta_args(&self) -> Option<&Vec<String>> {
     //     self.meta_args.as_ref()
     // }
 
-    // pub fn table_name(&self) -> Option<&String> {
-    //     self.table_name.as_ref()
-    // }
+    pub fn table_name(&self) -> Option<&String> {
+        self.table_name.as_ref()
+    }
 
     // pub fn columns_to_create(&self) -> Option<&Vec<String>> {
     //     self.columns_to_create.as_ref()
     // }
 
-    // pub fn row_to_insert(&self) -> Option<&Vec<String>> {
-    //     self.row_to_insert.as_ref()
-    // }
+    pub fn row_to_insert(&self) -> Option<&Vec<String>> {
+        self.row_to_insert.as_ref()
+    }
 }
 
 /// read the next word after the given `index`
@@ -78,7 +78,7 @@ fn read_next_word(input: &String, mut index: usize) -> (String, usize) {
         if c == ';' {
             break;
         }
-        if c == ' ' || c == '\t' || c == '\n' {
+        if c == ' ' || c == '\t' || c == '\n' || c == ',' {
             if next_word.is_empty() {
                 continue;
             }
@@ -126,12 +126,11 @@ fn read_next_list(input: &String, mut index: usize) -> (bool, Vec<String>, usize
         }
         (cur, index) = read_next_word(input, index);
         if let Some(last_char) = cur.chars().last() {
-            if last_char == ',' || last_char == ')' {
+            if last_char == ')' {
                 cur.pop();
-                next_list.push(cur);
-            } else {
                 list_ended = true;
             }
+            next_list.push(cur);
             if last_char == ')' {
                 // in next iteration this loop will break with success == true
                 index -= 1;
@@ -172,7 +171,7 @@ fn parse_error() -> Statement {
 
 fn compile_meta(input: &String) -> Statement {
     let (first_word, end_index) = read_next_word(input, 1);
-    let meta_args = input[end_index..].to_string();    
+    let meta_args = input[end_index..].to_string();
     match first_word.to_lowercase().as_str() {
         "exit" => std::process::exit(0),
         "help" => Statement::new(
@@ -235,6 +234,17 @@ fn compile_statement(input: &String) -> Statement {
                 return parse_error();
             }
             (table_name, end_index) = read_next_word(input, end_index);
+
+            // Allowing table names starting with alphabets only
+            // This also prevents user from giving empty/none table_name
+            if let Some(table_name_first_char) = table_name.chars().next() {
+                if !table_name_first_char.is_alphabetic() {
+                    return parse_error();
+                }
+            } else {
+                return parse_error();
+            }
+
             let (success, row_to_insert, _) = read_next_list(input, end_index);
             match success {
                 true => Statement::new(
