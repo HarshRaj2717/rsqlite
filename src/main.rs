@@ -1,5 +1,6 @@
 mod compiler;
 mod virtual_machine;
+mod utils;
 
 struct InputBuffer {
     buffer: String,
